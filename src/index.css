@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import 'tailwindcss';
+
+html, body, #root { height: 100%; }
+
+@theme {
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-lora:  'Lora', Georgia, serif;
+  --font-sans:  'DM Sans', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: #1a2620;
+  font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar { width: 0; height: 0; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in    { animation: fadeIn    0.28s ease forwards; }
+.animate-slide-up   { animation: slideUp   0.34s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.animate-scale-in   { animation: scaleIn   0.22s ease forwards; }
+.animate-slide-right{ animation: slideRight 0.26s cubic-bezier(0.22,1,0.36,1) forwards; }
