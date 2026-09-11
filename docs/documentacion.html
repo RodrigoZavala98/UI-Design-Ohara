@@ -1,0 +1,1487 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual de Bibliotheca</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Lora:ital,wght@1,400&display=swap">
+
+<style>
+  /* ── Tokens ─────────────────────────────────────────────────
+     Paleta tomada de src/theme.ts, apariencia Neblina activa.
+     60 % dominante · 30 % estructura · 10 % acento             */
+  :root {
+    --ground:      #eef2f7;
+    --surface:     #ffffff;
+    --surface-2:   #f8fafc;
+    --line:        #c4d4e2;
+    --line-soft:   #dbe7f2;
+    --line-strong: #a6bccf;
+    --ink:         #23313d;
+    --ink-mid:     #445a6c;
+    --ink-mute:    #7794a9;
+    --accent:      #5a7fa0;
+    --accent-deep: #40627f;
+    --accent-pale: #dbe7f2;
+    --flag:        #b06b3e;
+    --flag-pale:   #f5e6da;
+    --shadow:      0 1px 2px rgba(35, 49, 61, .06), 0 8px 24px rgba(35, 49, 61, .06);
+
+    --display: "Playfair Display", Georgia, "Times New Roman", serif;
+    --sans:    "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --serif:   "Lora", Georgia, serif;
+    --mono:    "DM Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #131c25;
+      --surface:     #1b2734;
+      --surface-2:   #21303f;
+      --line:        #2e4152;
+      --line-soft:   #263748;
+      --line-strong: #3d5468;
+      --ink:         #e4edf5;
+      --ink-mid:     #aec4d5;
+      --ink-mute:    #7f9ab0;
+      --accent:      #8fb3d0;
+      --accent-deep: #b0cbe2;
+      --accent-pale: #23384a;
+      --flag:        #dda077;
+      --flag-pale:   #3a2a1e;
+      --shadow:      0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #131c25;
+    --surface:     #1b2734;
+    --surface-2:   #21303f;
+    --line:        #2e4152;
+    --line-soft:   #263748;
+    --line-strong: #3d5468;
+    --ink:         #e4edf5;
+    --ink-mid:     #aec4d5;
+    --ink-mute:    #7f9ab0;
+    --accent:      #8fb3d0;
+    --accent-deep: #b0cbe2;
+    --accent-pale: #23384a;
+    --flag:        #dda077;
+    --flag-pale:   #3a2a1e;
+    --shadow:      0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+
+  /* ── Base ──────────────────────────────────────────────────── */
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  @media (max-width: 940px) {
+    .page { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  }
+
+  /* ── Portada ───────────────────────────────────────────────── */
+  .masthead {
+    grid-column: 1 / -1;
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px;
+  }
+  .masthead__eyebrow {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .masthead h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -.015em;
+    margin: 10px 0 0;
+    text-wrap: balance;
+  }
+  .masthead p {
+    margin: 14px 0 0;
+    max-width: 52ch;
+    color: var(--ink-mid);
+    font-size: 1.02rem;
+  }
+  .masthead__meta {
+    display: grid;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    color: var(--ink-mute);
+    text-align: right;
+  }
+  .masthead__meta b { color: var(--ink-mid); font-weight: 500; }
+  @media (max-width: 700px) { .masthead__meta { text-align: left; } }
+
+  /* ── Índice lateral ────────────────────────────────────────── */
+  .toc {
+    position: sticky;
+    top: 32px;
+    font-size: .88rem;
+  }
+  .toc__title {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0 0 12px;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .toc a {
+    display: block;
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: var(--ink-mid);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .toc a:hover, .toc a:focus-visible {
+    background: var(--surface);
+    color: var(--accent-deep);
+    border-left-color: var(--accent);
+  }
+  .toc__group {
+    margin-top: 16px;
+    padding: 0 10px 4px;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  @media (max-width: 940px) {
+    .toc { position: static; border: 1px solid var(--line); border-radius: 14px; padding: 18px 14px; background: var(--surface); }
+  }
+
+  /* ── Ritmo del cuerpo ──────────────────────────────────────── */
+  main { display: grid; gap: 56px; min-width: 0; }
+  section { scroll-margin-top: 24px; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.85rem;
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.02rem;
+    letter-spacing: -.005em;
+    margin: 28px 0 8px;
+  }
+  h4 {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 24px 0 8px;
+  }
+  p { margin: 0 0 14px; max-width: 70ch; }
+  p:last-child { margin-bottom: 0; }
+  ul, ol { margin: 0 0 14px; padding-left: 20px; max-width: 70ch; }
+  li { margin-bottom: 5px; }
+  li::marker { color: var(--ink-mute); }
+  a { color: var(--accent-deep); }
+  strong { font-weight: 600; }
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 5px;
+    padding: .08em .34em;
+    color: var(--ink-mid);
+    overflow-wrap: anywhere;
+  }
+
+  .lede {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.06rem;
+    color: var(--ink-mid);
+    max-width: 62ch;
+    margin: 0 0 24px;
+  }
+
+  /* ── Cabecera de módulo ────────────────────────────────────── */
+  .mod-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 22px;
+  }
+  .mod-head h2 { margin: 0; }
+  .mod-head__files { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+
+  .file {
+    font-family: var(--mono);
+    font-size: .74rem;
+    color: var(--ink-mid);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  .badge {
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border-radius: 99px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .badge--impl { background: var(--accent-pale); color: var(--accent-deep); }
+  .badge--spec { background: var(--flag-pale);   color: var(--flag); }
+
+  /* ── Cuerpo del módulo: captura fija a la izquierda ────────── */
+  .mod-body {
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .mod-body { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  }
+
+  /* ── Hueco de captura ──────────────────────────────────────── */
+  .shot { margin: 0; display: grid; gap: 8px; }
+  .shot__frame {
+    aspect-ratio: 390 / 844;
+    border: 2px dashed var(--line-strong);
+    border-radius: 30px;
+    background: var(--surface-2);
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 6px;
+    padding: 20px;
+    text-align: center;
+  }
+  .shot__id {
+    font-family: var(--mono);
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+  .shot__hint {
+    font-size: .76rem;
+    color: var(--ink-mute);
+    line-height: 1.5;
+    max-width: 22ch;
+  }
+  .shot__file {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--ink-mid);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 2px 6px;
+    overflow-wrap: anywhere;
+  }
+  .shot figcaption { font-size: .78rem; color: var(--ink-mute); line-height: 1.5; }
+  /* Al pegar la imagen real conserva estas medidas */
+  .shot__img {
+    width: 100%;
+    border-radius: 30px;
+    border: 1px solid var(--line);
+    display: block;
+  }
+
+  /* ── Tarjetas y tablas ─────────────────────────────────────── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .panel--quiet { box-shadow: none; background: var(--surface-2); }
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-pale);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: .93rem;
+    color: var(--ink-mid);
+  }
+  .note--flag { border-left-color: var(--flag); background: var(--flag-pale); }
+  .note p { margin-bottom: 8px; }
+
+  .table-wrap { overflow-x: auto; margin: 0 0 14px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border-bottom-color: var(--line-strong);
+    white-space: nowrap;
+  }
+  td:first-child { color: var(--ink); font-weight: 500; white-space: nowrap; }
+  td code { background: none; border: none; padding: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ── Cascada de resolución ─────────────────────────────────── */
+  .chain { display: grid; gap: 0; margin: 0 0 20px; padding: 0; list-style: none; max-width: none; }
+  .chain__step {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 18px;
+    padding: 0 0 22px;
+    position: relative;
+  }
+  .chain__step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 22px;
+    top: 44px;
+    bottom: 0;
+    width: 2px;
+    background: var(--line);
+  }
+  .chain__n {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: grid; place-content: center;
+    font-family: var(--display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--surface);
+    background: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+  .chain__step--spec .chain__n { background: var(--flag); }
+  .chain__body { padding-top: 4px; }
+  .chain__body h3 { margin: 0 0 2px; font-size: 1.05rem; }
+  .chain__body p { margin: 0 0 10px; }
+  .chain__meta {
+    display: flex; flex-wrap: wrap; gap: 6px 8px;
+    font-family: var(--mono); font-size: .73rem; color: var(--ink-mute);
+  }
+  .chain__meta span {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 7px;
+    background: var(--surface-2);
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: .8rem;
+    line-height: 1.65;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 14px;
+    color: var(--ink-mid);
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 1em; }
+
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    margin: 0 0 16px;
+  }
+  .swatch { display: flex; align-items: center; gap: 11px; font-size: .86rem; }
+  .swatch i {
+    width: 34px; height: 34px; border-radius: 9px;
+    border: 1px solid var(--line-strong);
+    flex: none;
+  }
+  .swatch b { display: block; font-weight: 600; font-size: .88rem; }
+  .swatch span { font-family: var(--mono); font-size: .74rem; color: var(--ink-mute); }
+
+  /* ── Modos: 60-30-10 en proporción real ────────────────────── */
+  .modos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 0 0 18px;
+  }
+  .modo {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .modo__muestra { display: block; }
+  /* Las tres bandas ocupan 60, 30 y 10 por ciento del ancho */
+  .modo__bandas { display: flex; height: 56px; }
+  .modo__bandas i { display: block; }
+  .modo__bandas i:nth-child(1) { flex: 60; }
+  .modo__bandas i:nth-child(2) { flex: 30; }
+  .modo__bandas i:nth-child(3) { flex: 10; }
+  .modo__texto {
+    padding: 9px 12px 11px;
+    border-top: 1px solid var(--line);
+  }
+  .modo__texto b { display: block; font-size: .9rem; font-weight: 600; }
+  .modo__texto span { font-size: .78rem; color: var(--ink-mute); }
+  .modo__prueba {
+    height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .74rem; font-weight: 600;
+    font-family: var(--sans);
+  }
+
+  .foot {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+    font-size: .84rem;
+    color: var(--ink-mute);
+    font-family: var(--serif);
+    font-style: italic;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  html, body { margin: 0; }
+  * { box-sizing: border-box; }
+  img { max-width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <div>
+      <p class="masthead__eyebrow">Documentación de producto</p>
+      <h1>Bibliotheca</h1>
+      <p>
+        Aplicación de biblioteca personal: catalogar lo que tienes, seguir lo que lees,
+        recordar lo que prestaste y guardar lo que subrayaste. Este manual describe cada
+        módulo de la interfaz, el motor de metadatos que rellena las fichas y el modelo
+        de datos que lo sostiene.
+      </p>
+    </div>
+    <div class="masthead__meta">
+      <div><b>Versión</b> 1.0.0 (42)</div>
+      <div><b>Revisión</b> 10 septiembre 2026</div>
+      <div><b>Prototipo</b> React 19 · Vite 8 · Tailwind 4</div>
+      <div><b>Cliente</b> Android · Kotlin</div>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Índice">
+    <p class="toc__title">Contenido</p>
+    <ol>
+      <li><a href="#lectura">Cómo leer este manual</a></li>
+      <li><a href="#diseno">Sistema de diseño</a></li>
+      <li><a href="#arquitectura">Arquitectura</a></li>
+    </ol>
+    <p class="toc__group">Módulos</p>
+    <ol>
+      <li><a href="#m-shell">Marco de aplicación</a></li>
+      <li><a href="#m-coleccion">Colección</a></li>
+      <li><a href="#m-libreros">Libreros</a></li>
+      <li><a href="#m-prestamos">Préstamos</a></li>
+      <li><a href="#m-anadir">Añadir libro</a></li>
+      <li><a href="#m-detalle">Detalle · Información</a></li>
+      <li><a href="#m-seguimiento">Detalle · Seguimiento</a></li>
+      <li><a href="#m-year">My year in books</a></li>
+      <li><a href="#m-ajustes">Ajustes</a></li>
+    </ol>
+    <p class="toc__group">Bajo la interfaz</p>
+    <ol>
+      <li><a href="#metadatos">Motor de metadatos</a></li>
+      <li><a href="#scraper">Scraper de respaldo</a></li>
+      <li><a href="#datos">Modelo de datos</a></li>
+      <li><a href="#estado">Estado y persistencia</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section id="lectura">
+      <h2>Cómo leer este manual</h2>
+      <p class="lede">
+        El documento describe Bibliotheca como producto terminado. No todo lo descrito
+        existe hoy en el mismo lugar.
+      </p>
+      <p>
+        Lo que hay en este repositorio es el <strong>prototipo interactivo de la interfaz</strong>,
+        construido en React para poder recorrer y validar cada pantalla antes de escribir el
+        cliente definitivo. El cliente de producción es una aplicación Android en Kotlin, y de
+        ahí vienen las piezas que hablan de hilos, Jsoup o almacenamiento local.
+      </p>
+      <p>Para que no haya ambigüedad, cada módulo lleva una de estas dos marcas:</p>
+      <div class="cols">
+        <div class="panel panel--quiet">
+          <span class="badge badge--impl">Implementado</span>
+          <p style="margin:10px 0 0;font-size:.9rem;">
+            Navegable hoy en el prototipo. Lo que describe el texto se puede ver y usar en pantalla.
+          </p>
+        </div>
+        <div class="panel panel--quiet">
+          <span class="badge badge--spec">Especificado</span>
+          <p style="margin:10px 0 0;font-size:.9rem;">
+            Definido para el cliente de producción. La interfaz existe; la mecánica de fondo
+            está descrita aquí como contrato de implementación.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section id="diseno">
+      <h2>Sistema de diseño</h2>
+      <p class="lede">Una sola regla de proporción gobierna toda la interfaz: 60 – 30 – 10.</p>
+      <p>
+        El reparto no es decorativo, es una restricción de composición. Cada color tiene un
+        trabajo asignado y no invade el de los demás: el dominante sostiene, el estructural
+        agrupa y el acento solo aparece donde hay una acción. Ese equilibrio es lo que evita
+        que una pantalla con muchos datos se sienta ruidosa.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Proporción</th><th>Papel</th><th>Dónde vive</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>60 %</td><td>Dominante · el fondo</td><td>Lienzos de pantalla, fondos de modal, superficies base</td></tr>
+            <tr><td>30 %</td><td>Estructura</td><td>Tarjetas, barra de navegación, campos, contenedores, separadores</td></tr>
+            <tr><td>10 %</td><td>Acento · la acción</td><td>Botón primario, pestaña activa, FAB, badges, barra de progreso</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Las cuatro apariencias</h3>
+      <p>
+        Cambiar de apariencia no cambia solo el acento: cada una define su tríada completa
+        más su familia de tinta y el fondo exterior del dispositivo. Si solo se sustituyera
+        el 10 %, el fondo y la estructura seguirían en la familia anterior y el conjunto se
+        vería roto. La apariencia activa es <strong>Neblina</strong>.
+      </p>
+      <div class="cols">
+        <div class="swatch"><i style="background:#4e7c5f"></i><div><b>Salvia</b><span>#4e7c5f · equilibrio natural</span></div></div>
+        <div class="swatch"><i style="background:#5a7fa0"></i><div><b>Neblina</b><span>#5a7fa0 · serenidad marina</span></div></div>
+        <div class="swatch"><i style="background:#7a6a9a"></i><div><b>Lavanda</b><span>#7a6a9a · calma introspectiva</span></div></div>
+        <div class="swatch"><i style="background:#8a6840"></i><div><b>Ámbar</b><span>#8a6840 · calidez acogedora</span></div></div>
+      </div>
+
+      <h3>Los tres modos: claro, sepia y oscuro</h3>
+      <p>
+        Apariencia y modo son dos ejes distintos y se combinan sin pisarse.
+        La <strong>apariencia</strong> elige la familia cromática —el matiz de la tríada—.
+        El <strong>modo</strong> decide cómo se renderiza esa familia: qué tan luminoso es el
+        60 %, cuánto se separa el 30 % del fondo y cuánto hay que corregir el acento
+        para que siga leyéndose. Cuatro apariencias por tres modos dan doce combinaciones
+        con un solo juego de tokens.
+      </p>
+
+      <div class="modos">
+        <div class="modo">
+          <div class="modo__muestra">
+            <div class="modo__bandas">
+              <i style="background:#eef2f7"></i><i style="background:#c4d4e2"></i><i style="background:#5a7fa0"></i>
+            </div>
+            <div class="modo__prueba" style="background:#eef2f7;color:#23313d">Aa · texto sobre fondo</div>
+          </div>
+          <div class="modo__texto">
+            <b>Claro</b>
+            <span>Bruma clara. El modo por defecto, para uso diurno.</span>
+          </div>
+        </div>
+
+        <div class="modo">
+          <div class="modo__muestra">
+            <div class="modo__bandas">
+              <i style="background:#f2e8d5"></i><i style="background:#dccdb0"></i><i style="background:#4d769b"></i>
+            </div>
+            <div class="modo__prueba" style="background:#f2e8d5;color:#33291c">Aa · texto sobre fondo</div>
+          </div>
+          <div class="modo__texto">
+            <b>Sepia</b>
+            <span>Papel envejecido. Para sesiones largas de lectura.</span>
+          </div>
+        </div>
+
+        <div class="modo">
+          <div class="modo__muestra">
+            <div class="modo__bandas">
+              <i style="background:#17212c"></i><i style="background:#253544"></i><i style="background:#8fb3d0"></i>
+            </div>
+            <div class="modo__prueba" style="background:#17212c;color:#e6eff7">Aa · texto sobre fondo</div>
+          </div>
+          <div class="modo__texto">
+            <b>Oscuro</b>
+            <span>Pizarra profunda. Noche y pantallas OLED.</span>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:.86rem;color:var(--ink-mute);margin-top:-6px;">
+        Las bandas están dibujadas a escala: ocupan exactamente el 60, el 30 y el 10 % del ancho.
+      </p>
+
+      <h4>Tokens de la apariencia activa en los tres modos</h4>
+      <p>
+        Neblina es la apariencia de referencia y la que aparece en todas las capturas de este
+        manual. El resto se deriva aplicando las mismas reglas a su propia familia.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Token</th><th>Papel</th><th>Claro</th><th>Sepia</th><th>Oscuro</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>dominante</td><td>Fondo de pantalla</td><td><code>#eef2f7</code></td><td><code>#f2e8d5</code></td><td><code>#17212c</code></td></tr>
+            <tr><td>dominanteClaro</td><td>Interior de modales</td><td><code>#f8fafc</code></td><td><code>#f8f1e3</code></td><td><code>#1e2a37</code></td></tr>
+            <tr><td>dominanteProfundo</td><td>Huecos y campos internos</td><td><code>#e0e8f1</code></td><td><code>#e6dac2</code></td><td><code>#121a23</code></td></tr>
+            <tr><td>estructura</td><td>Tarjetas, nav, inputs</td><td><code>#c4d4e2</code></td><td><code>#dccdb0</code></td><td><code>#253544</code></td></tr>
+            <tr><td>estructuraOscura</td><td>Bordes y separadores</td><td><code>#a6bccf</code></td><td><code>#c6b291</code></td><td><code>#374c60</code></td></tr>
+            <tr><td>acento</td><td>Acción</td><td><code>#5a7fa0</code></td><td><code>#4d769b</code></td><td><code>#8fb3d0</code></td></tr>
+            <tr><td>acentoPálido</td><td>Chip activo, badge suave</td><td><code>#dbe7f2</code></td><td><code>#e2e7ec</code></td><td><code>#24384a</code></td></tr>
+            <tr><td>tinta</td><td>Texto principal</td><td><code>#23313d</code></td><td><code>#33291c</code></td><td><code>#e6eff7</code></td></tr>
+            <tr><td>tintaMedia</td><td>Texto secundario</td><td><code>#445a6c</code></td><td><code>#5a4b36</code></td><td><code>#b6cadb</code></td></tr>
+            <tr><td>tintaSuave</td><td>Captions y placeholders</td><td><code>#7794a9</code></td><td><code>#8a795f</code></td><td><code>#8aa4b8</code></td></tr>
+            <tr><td>texto sobre acento</td><td>Etiqueta del botón primario</td><td>blanco</td><td>blanco</td><td><code>#17212c</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Cómo se deriva cada modo</h4>
+      <ul>
+        <li><strong>Claro</strong> es la definición base de cada apariencia: fondo muy claro teñido
+            con su matiz, estructura a media distancia y acento saturado.</li>
+        <li><strong>Sepia</strong> sustituye el fondo y la estructura por una escala de papel cálido
+            —común a las cuatro apariencias, porque el papel es el papel— y conserva el acento de
+            la apariencia oscurecido un paso, ya que un tono claro pierde contraste sobre crema.
+            La tinta se vuelve marrón tostado en lugar de gris.</li>
+        <li><strong>Oscuro</strong> toma como fondo el color del shell de la apariencia, levanta la
+            estructura entre un 9 y un 18 % para separarla del fondo, y <em>aclara</em> el acento
+            en lugar de oscurecerlo. Es la inversión que más se olvida: el acento del modo claro
+            sobre fondo oscuro baja a 2,4:1 y desaparece.</li>
+      </ul>
+
+      <h4>El acento en cada combinación</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Apariencia</th><th>Claro</th><th>Sepia</th><th>Oscuro</th></tr></thead>
+          <tbody>
+            <tr><td>Salvia</td><td><code>#4e7c5f</code></td><td><code>#4e7c5f</code></td><td><code>#89b39a</code></td></tr>
+            <tr><td>Neblina</td><td><code>#5a7fa0</code></td><td><code>#4d769b</code></td><td><code>#8fb3d0</code></td></tr>
+            <tr><td>Lavanda</td><td><code>#7a6a9a</code></td><td><code>#6f5f8f</code></td><td><code>#a698c4</code></td></tr>
+            <tr><td>Ámbar</td><td><code>#8a6840</code></td><td><code>#7d5c34</code></td><td><code>#c9a071</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Contraste medido</h4>
+      <p>
+        Ratios WCAG calculados sobre los valores de arriba. El umbral es 4,5:1 para texto normal
+        y 3:1 para texto grande, elementos de interfaz y bordes.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Par</th><th class="num">Claro</th><th class="num">Sepia</th><th class="num">Oscuro</th></tr></thead>
+          <tbody>
+            <tr><td>tinta sobre fondo</td><td class="num">11,84</td><td class="num">11,72</td><td class="num">13,99</td></tr>
+            <tr><td>tintaMedia sobre fondo</td><td class="num">6,39</td><td class="num">6,93</td><td class="num">9,66</td></tr>
+            <tr><td>tintaSuave sobre fondo</td><td class="num">2,83</td><td class="num">3,47</td><td class="num">6,26</td></tr>
+            <tr><td>tinta sobre estructura</td><td class="num">8,78</td><td class="num">9,09</td><td class="num">10,80</td></tr>
+            <tr><td>acento sobre fondo</td><td class="num">3,75</td><td class="num">3,94</td><td class="num">7,38</td></tr>
+            <tr><td>texto del botón primario</td><td class="num">4,22</td><td class="num">4,79</td><td class="num">7,38</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note note--flag">
+        <p style="margin:0 0 8px;"><strong>Dos ajustes pendientes en el modo claro.</strong></p>
+        <p style="margin:0 0 8px;">
+          Sepia y oscuro pasan el umbral en todos los pares. El modo claro arrastra dos valores
+          por debajo, heredados de la paleta original:
+        </p>
+        <p style="margin:0;">
+          El texto blanco sobre el botón primario queda en <strong>4,22</strong> y necesita 4,5;
+          oscurecer el acento a <code>#55799b</code> lo sube a 4,57 con un cambio de tono casi
+          imperceptible. Y las <em>captions</em> en tintaSuave quedan en <strong>2,83</strong>;
+          <code>#657f96</code> las lleva a 3,71. Ambos cambios afectan a todas las capturas de
+          este manual, así que la decisión es de diseño, no de implementación.
+        </p>
+      </div>
+
+      <h4>Lo que no cambia con el modo</h4>
+      <ul>
+        <li><strong>Los colores semánticos.</strong> Error y aviso mantienen su significado en los tres
+            modos; solo se aclaran en oscuro para conservar contraste.</li>
+        <li><strong>El color de lomo de cada libro.</strong> Es contenido, no interfaz: identifica al
+            ejemplar en la rejilla, en la vista del librero y en el resaltado de sus frases. Cambiarlo
+            con el tema rompería ese reconocimiento.</li>
+        <li><strong>La proporción.</strong> Los tres modos reparten 60-30-10 exactamente igual. Lo que
+            cambia es la luminosidad de cada franja, nunca cuánto ocupa.</li>
+      </ul>
+
+      <h3>Tipografía</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Familia</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td>Playfair Display</td><td>Títulos de pantalla, títulos de libro, cifras destacadas</td></tr>
+            <tr><td>Lora</td><td>Texto literario: sinopsis, reseñas, frases, notas en cursiva</td></tr>
+            <tr><td>DM Sans</td><td>Interfaz: etiquetas, botones, campos, metadatos</td></tr>
+            <tr><td>DM Mono</td><td>Datos técnicos: ISBN, códigos</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Movimiento</h3>
+      <p>
+        Cuatro animaciones cubren todas las transiciones, definidas en <code>src/index.css</code>:
+        <code>fadeIn</code> para listas que entran escalonadas, <code>slideUp</code> para el modal
+        de añadir, <code>slideRight</code> para pantallas que se apilan y <code>scaleIn</code> para
+        elementos que aparecen dentro de una vista ya visible. Las listas escalonan con
+        retardos de 35–50 ms por elemento.
+      </p>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section id="arquitectura">
+      <h2>Arquitectura</h2>
+      <p>
+        El prototipo es una aplicación de una sola pantalla: no hay enrutador. La navegación
+        es estado local, y las pantallas superpuestas se apilan como capas absolutas dentro
+        del marco del dispositivo, con un orden de apilamiento explícito.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Archivo</th><th>Responsabilidad</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/App.tsx</code></td><td>Marco del dispositivo, escalado, barra de estado, navegación inferior y montaje de overlays</td></tr>
+            <tr><td><code>src/theme.ts</code></td><td>Las cuatro apariencias y el objeto <code>C</code> de tokens que consume toda la interfaz</td></tr>
+            <tr><td><code>src/data.ts</code></td><td>Tipos del dominio, catálogos de opciones y datos de ejemplo</td></tr>
+            <tr><td><code>src/screens/</code></td><td>Colección, Libreros, Préstamos, Ajustes, My year in books</td></tr>
+            <tr><td><code>src/components/</code></td><td>Añadir libro, búsqueda por título, detalle del libro, seguimiento de lectura</td></tr>
+            <tr><td><code>src/index.css</code></td><td>Fuentes, animaciones y reinicio global</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Capas de apilamiento</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="num">z-index</th><th>Capa</th></tr></thead>
+          <tbody>
+            <tr><td class="num">20</td><td>Barra de navegación inferior y su botón flotante</td></tr>
+            <tr><td class="num">50</td><td>Detalle del libro</td></tr>
+            <tr><td class="num">60</td><td>Añadir libro · Ajustes</td></tr>
+            <tr><td class="num">70</td><td>Subsecciones de Ajustes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <p style="margin:0;">
+          La barra inferior necesita <code>position: relative</code> y <code>z-index: 20</code> por una razón
+          concreta: el contenido de las pantallas usa animaciones con <code>transform</code>, que crean
+          contexto de apilamiento y taparían la mitad del botón flotante que sobresale por encima
+          de la barra.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 1 ═══════════════════════════ -->
+    <section id="m-shell">
+      <div class="mod-head">
+        <h2>Marco de aplicación</h2>
+        <span class="badge badge--impl">Cuerpo de simulador</span>
+        <div class="mod-head__files"><span class="file">src/App.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+          <!-- CAPTURA 01 · Marco de aplicación
+               Sustituye el div.shot__frame de abajo por:
+               <img class="shot__img" src="./capturas/01-marco.png" alt="Marco de aplicación con la navegación inferior">
+          -->
+          <img class="shot__img" src="../docs/01-marco.png" alt="Marco de aplicación con la navegación inferior">
+          <figcaption>Barra de estado, lienzo y navegación de cinco posiciones.</figcaption>
+        </figure>
+        <div>
+          <p>
+            El proyecto esta dentro de un contenedor todo lo demás. Dibuja el dispositivo de <code>390 × 844</code> con
+            esquinas de 44 px, la barra de estado simulada y la navegación inferior, y aloja
+            las pantallas superpuestas. (esto es unicamente para poder trazar elproyecto)
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Escalado automático:</strong> el marco se reduce con <code>transform: scale()</code> hasta
+                caber entero en la ventana, con 16 px de aire arriba y abajo. Nunca se agranda por
+                encima del tamaño real. Recalcula al redimensionar y al girar el dispositivo.</li>
+            <li><strong>Barra de estado:</strong> hora, cobertura, wifi y batería en SVG.</li>
+            <li><strong>Navegación inferior:</strong> cinco posiciones — Colección, Libreros, el botón
+                flotante Añadir, Préstamos y Ajustes. La pestaña activa se marca con color de acento
+                y peso 600.</li>
+            <li><strong>Botón flotante:</strong> sobresale 22 px por encima de la barra, con halo del color
+                de acento y respuesta táctil de escala al pulsar.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 2 ═══════════════════════════ -->
+    <section id="m-coleccion">
+      <div class="mod-head">
+        <h2>Colección</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/screens/OverviewScreen.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+          <img class="shot__img" src="../docs/01-marco.png" alt="Pantalla Colección en vista de rejilla">
+          <img class="shot__img" src="../docs/02b-coleccion.png" alt="Pantalla Colección en vista de rejilla">
+        </figure>
+        <div>
+          <p>
+            Pantalla de inicio y punto de entrada a todo el catálogo. Responde a la pregunta
+            «qué tengo» antes que a cualquier otra.
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Tres contadores:</strong> Total, Leídos y Por leer. El total va en acento suave
+                porque es la cifra de referencia.</li>
+            <li><strong>Buscador:</strong> filtra por título o autor conforme se escribe, sin distinguir
+                mayúsculas.</li>
+            <li><strong>Píldoras de categoría:</strong> «Todos» más un filtro por género, en fila
+                desplazable horizontalmente.</li>
+            <li><strong>Conmutador rejilla / lista:</strong> la rejilla de tres columnas prioriza las portadas
+                y muestra título, autor y calificación; la lista añade el año y los chips de género y
+                estado de lectura.</li>
+            <li><strong>Entrada al detalle:</strong> cualquier libro abre su ficha completa.</li>
+          </ul>
+          <p>
+            Las portadas se apoyan en el color de lomo de cada libro: se usa como fondo mientras
+            carga la imagen y como color de su sombra, de modo que cada tarjeta proyecta su propio tono.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 3 ═══════════════════════════ -->
+    <section id="m-libreros">
+      <div class="mod-head">
+        <h2>Libreros</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/screens/ShelvesScreen.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+               <img class="shot__img" src="../docs/03-libreros.png" alt="Pantalla Libreros con un estante desplegado">
+        </figure>
+        <div>
+          <p>
+            La organización física de la colección. Un «librero» agrupa libros igual que un
+            estante real, y esa misma asignación es la que aparece en la ficha de cada ejemplar.
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Vista del librero:</strong> ilustración generada con los libros reales — cada lomo
+                es un libro, con su color y una altura variable, sobre baldas dibujadas con un
+                degradado repetido.</li>
+            <li><strong>Tarjeta por librero:</strong> icono, nombre, número de libros y tres miniaturas de
+                portada. Al pulsarla se despliega una rejilla de cuatro columnas con todo su contenido.</li>
+            <li><strong>Estado vacío:</strong> un estante sin libros lo dice explícitamente en vez de quedar en blanco.</li>
+            <li><strong>Nuevo librero:</strong> acción de creación al final de la lista.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 4 ═══════════════════════════ -->
+    <section id="m-prestamos">
+      <div class="mod-head">
+        <h2>Préstamos</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/screens/LoansScreen.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+          <img class="shot__img" src="../docs/04-prestamos.png" alt="Pantalla Préstamos con un préstamo vencido">
+          <img class="shot__img" src="../docs/04b-prestamos.png" alt="Pantalla Préstamos con Historial">
+          <figcaption>El vencido se distingue por su contorno rojo.</figcaption>
+        </figure>
+        <div>
+          <p>
+            Control de los libros que salieron de casa. Resuelve la pregunta incómoda de
+            «a quién le presté esto y desde cuándo».
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Tres contadores:</strong> En préstamo, Devueltos y Vencidos. El de vencidos cambia
+                a color de alerta solo cuando hay alguno, de modo que el color señala algo real.</li>
+            <li><strong>Pestañas Activos / Historial.</strong></li>
+            <li><strong>Ficha de préstamo:</strong> portada, título, autor, prestatario con avatar de iniciales,
+                fecha de salida y estado de vencimiento redactado en lenguaje natural — «Vence en 12 días»,
+                «Vence hoy», «Vencido hace 3 días».</li>
+            <li><strong>Marcar devuelto:</strong> mueve el préstamo al historial en el momento.</li>
+            <li><strong>Señal de vencimiento:</strong> contorno rojo en la tarjeta, además del texto.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 5 ═══════════════════════════ -->
+    <section id="m-anadir">
+      <div class="mod-head">
+        <h2>Añadir libro</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files">
+          <span class="file">src/components/AddBookModal.tsx</span>
+          <span class="file">src/components/BookSearch.tsx</span>
+        </div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+          <img class="shot__img" src="../docs/05-anadir-metodos.png" alt="Los tres métodos para añadir un libro">
+          <img class="shot__img" src="../docs/05b-anadir-metodos.png" alt="Metodo por ISBN">
+          <img class="shot__img" src="../docs/05c-anadir-metodos.png" alt="Metodo por busqueda">
+          <img class="shot__img" src="../docs/05d-anadir-metodos.png" alt="Metodo Manual">
+        </figure>
+        <div>
+          <p>
+            Tres caminos para dar de alta un ejemplar, ordenados del que menos esfuerzo pide
+            al que más. Todos desembocan en el mismo formulario de revisión antes de guardar.
+          </p>
+
+          <h3>1 · Escanear ISBN</h3>
+          <p>
+            Visor de cámara con marco de enfoque y línea de barrido. Al leer el código de barras
+            resuelve la ficha con el motor de metadatos y salta al formulario ya relleno.
+          </p>
+
+          <h3>2 · Buscar por título</h3>
+          <p>
+            Se escribe el nombre y la aplicación busca en el catálogo. Detalles de comportamiento:
+          </p>
+          <ul>
+            <li>Se dispara sola al escribir, con espera de <strong>400 ms</strong> tras la última tecla y un
+                mínimo de <strong>tres caracteres</strong>.</li>
+            <li>Cada consulta nueva <strong>aborta la anterior</strong>, de modo que una respuesta lenta no
+                sobreescribe a una más reciente.</li>
+            <li>Resultados con miniatura, autor, año y número de páginas; si el registro no tiene
+                portada, se dibuja un icono de libro en su lugar.</li>
+            <li>Cuatro estados cubiertos: indicación inicial, esqueletos de carga, sin resultados y
+                error de red con reintento. Los tres últimos ofrecen siempre la salida a rellenar a mano.</li>
+          </ul>
+
+          <h3>3 · Rellenar campos</h3>
+          <p>Formulario de nueve campos, en este orden:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Campo</th><th>Control</th></tr></thead>
+              <tbody>
+                <tr><td>Título</td><td>Texto</td></tr>
+                <tr><td>Autor</td><td>Texto</td></tr>
+                <tr><td>Año</td><td>Numérico</td></tr>
+                <tr><td>Páginas</td><td>Numérico</td></tr>
+                <tr><td>ISBN</td><td>Texto</td></tr>
+                <tr><td>Género</td><td>Lista desplegable · 38 opciones</td></tr>
+                <tr><td>Idioma</td><td>Lista desplegable · 13 opciones</td></tr>
+                <tr><td>Tipo de edición</td><td>Lista desplegable · 8 opciones</td></tr>
+                <tr><td>Librero</td><td>Chips de selección única</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Librero se queda en chips a propósito: son pocos, llevan emoji y verlos todos ayuda
+            más que esconderlos. La portada aparece precargada cuando viene del catálogo, con
+            opción de quitarla.
+          </p>
+          <div class="note">
+            <p style="margin:0;">
+              Cuando los datos llegan del catálogo, el formulario muestra un aviso pidiendo revisarlos.
+              No es cortesía: los registros públicos mezclan con frecuencia el año de una reedición o
+              el recuento de páginas de otra edición distinta a la que tienes en la mano.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 6 ═══════════════════════════ -->
+    <section id="m-detalle">
+      <div class="mod-head">
+        <h2>Detalle del libro · Información</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/components/BookDetailModal.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+          <img class="shot__img" src="../docs/06-detalle-informacion.png" alt="Ficha del libro, pestaña Información">
+          <img class="shot__img" src="../docs/06b-detalle-informacion.png" alt="Ficha del libro, pestaña Información">
+        </figure>
+        <div>
+          <p>
+            La ficha completa de un ejemplar. Se abre desde Colección o desde cualquier librero
+            y se organiza en dos vistas conmutables por un selector situado justo debajo de la portada.
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Portada a sangre</strong> de 280 px con degradado, botón de volver, calificación
+                en estrellas y, superpuestos abajo, el librero al que pertenece, el título y el autor.</li>
+            <li><strong>Selector de vista:</strong> Información y Seguimiento; la segunda pestaña lleva el
+                porcentaje leído, de modo que el avance se ve sin entrar.</li>
+            <li><strong>Estado de lectura:</strong> «Leído», «Leyendo · N %» o «Por leer», más un chip rojo
+                si el ejemplar está prestado, con el nombre de quien lo tiene.</li>
+            <li><strong>Cifras:</strong> año, páginas y género.</li>
+            <li><strong>Ficha del ejemplar:</strong> edición, idioma, librero e ISBN. El icono de edición
+                cambia según el formato — tapa dura rellena, tablet para eBook, audífonos para
+                audiolibro, disco para CD y DVD, lomo estrecho para bolsillo.</li>
+            <li><strong>Sinopsis</strong> plegada a cuatro líneas con «Leer más».</li>
+            <li><strong>Mi reseña:</strong> texto propio, editable en la misma pantalla, con estado vacío
+                que invita a escribirla.</li>
+            <li><strong>Frases:</strong> citas guardadas con su número de página, comilla decorativa y
+                borrado individual. Se añaden desde un compositor en línea.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 7 ═══════════════════════════ -->
+    <section id="m-seguimiento">
+      <div class="mod-head">
+        <h2>Detalle del libro · Seguimiento</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/components/BookTracking.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+        <img class="shot__img" src="../docs/07-detalle-seguimiento.png" alt="Vista de seguimiento con historial de lectura">
+        <img class="shot__img" src="../docs/07b-detalle-seguimiento.png" alt="Vista con conteo de paginas">
+        </figure>
+        <div>
+          <p>
+            El diario de lectura de ese ejemplar: en qué página vas, cuánto llevas y cuándo leíste.
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Avance:</strong> porcentaje en grande, «Página X de Y» y barra de progreso.</li>
+            <li><strong>Actualizar avance:</strong> abre un campo con la página actual precargada, más
+                saltos rápidos +10, +25, +50 y «Terminar». Se confirma con Enter.</li>
+            <li><strong>Casilla Leído:</strong> al marcarla el libro salta al 100 % y registra el tramo
+                pendiente como una entrada más del historial.</li>
+            <li><strong>Estrellas en tu colección:</strong> una por libro terminado.</li>
+            <li><strong>Historial de lectura:</strong> lo más reciente arriba, con fecha, tramo
+                «Página 288 → 471» y total de páginas de esa sesión. Cada entrada se puede borrar.</li>
+          </ul>
+          <h4>Reglas de consistencia</h4>
+          <ul>
+            <li>Guardar un avance crea una entrada con la fecha de hoy y marca el libro como leído
+                si alcanza el total.</li>
+            <li>Retroceder por debajo del total vuelve a desmarcarlo.</li>
+            <li>Borrar una entrada recalcula la página actual al último avance que sobreviva —o a
+                cero si no queda ninguno— y reajusta el estado de leído.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 8 ═══════════════════════════ -->
+    <section id="m-year">
+      <div class="mod-head">
+        <h2>My year in books</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/screens/YearInBooks.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+          <img class="shot__img" src="../docs/08-year-in-books.png" alt="Resumen anual de lectura">
+        </figure>
+        <div>
+          <p>
+            El resumen anual de lectura, accesible como primera opción destacada de Ajustes.
+            Es la recompensa del seguimiento: convierte los registros diarios en un balance.
+          </p>
+          <h4>Contenido</h4>
+          <ul>
+            <li><strong>Cabecera:</strong> avatar, el año en grande y acción de descarga del resumen.</li>
+            <li><strong>Dos métricas:</strong> Estrellas —libros completados— y Páginas leídas.</li>
+            <li><strong>Desglose por mes,</strong> de diciembre hacia enero, mostrando solo los meses con
+                libros terminados.</li>
+            <li><strong>Cada libro</strong> con portada, título, autor, año, calificación y una de sus frases
+                guardadas, resaltada como con marcatextos usando el color de su lomo.</li>
+          </ul>
+          <h4>Cómo se calculan las cifras</h4>
+          <p>Nada de esto se guarda aparte: todo se deriva del historial de lectura.</p>
+          <ul>
+            <li>Un libro cuenta como terminado en la fecha del avance que alcanzó su última página,
+                y ese mes es donde aparece.</li>
+            <li>Las estrellas son el número de libros completados dentro del año en curso.</li>
+            <li>Las páginas leídas suman los tramos de todos los registros del año, así que incluyen
+                lo avanzado en libros que aún no terminas.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ MÓDULO 9 ═══════════════════════════ -->
+    <section id="m-ajustes">
+      <div class="mod-head">
+        <h2>Ajustes</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/screens/SettingsScreen.tsx</span></div>
+      </div>
+      <div class="mod-body">
+        <figure class="shot">
+        <img class="shot__img" src="../docs/09-ajustes.png" alt="Pantalla de ajustes">
+        <img class="shot__img" src="../docs/09b-ajustes.png" alt="Pantalla de ajustes">
+        <img class="shot__img" src="../docs/09c-ajustes.png" alt="Pantalla de ajustes">
+        </figure>
+        <div>
+          <p>
+            Cabecera con el perfil —nombre y recuento real de libros y leídos— y, debajo, el
+            resumen anual destacado seguido de cinco secciones.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Sección</th><th>Contiene</th></tr></thead>
+              <tbody>
+                <tr><td>Apariencia</td><td>Tema claro / sepia / oscuro, color de acento, tamaño de texto, formato de fecha (DD-MM-AAAA o AAAA-MM-DD), idioma (Español o Inglés), tarjetas compactas y animaciones</td></tr>
+                <tr><td>Librería</td><td>Vista predeterminada, criterio de orden, duración del préstamo y días de aviso, y qué mostrar en las tarjetas</td></tr>
+                <tr><td>Notificaciones</td><td>Interruptor general y, si está activo, recordatorios de préstamo, alertas de vencimiento, resumen semanal y novedades</td></tr>
+                <tr><td>Privacidad</td><td>Respaldo automático, sincronización, análisis anónimo y gestión de datos: exportar, importar y borrar</td></tr>
+                <tr><td>Acerca de</td><td>Versión, valoración, ayuda y textos legales</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ METADATOS ══════════════════════════ -->
+    <section id="metadatos">
+      <div class="mod-head">
+        <h2>Motor de metadatos</h2>
+        <span class="badge badge--spec">Especificado</span>
+      </div>
+      <p class="lede">
+        Nadie quiere teclear nueve campos por libro. El motor intenta rellenarlos solo, y
+        recurre a fuentes progresivamente menos formales hasta conseguirlo.
+      </p>
+      <p>
+        La entrada puede ser un <strong>ISBN</strong> —escaneado o tecleado— o un <strong>título</strong>. La cadena
+        se recorre en orden y se detiene en la primera fuente que devuelve una ficha utilizable;
+        el resto no llega a consultarse. Toda la cadena se ejecuta fuera del hilo principal.
+      </p>
+
+      <ol class="chain">
+        <li class="chain__step">
+          <span class="chain__n">1</span>
+          <div class="chain__body">
+            <h3>Google Books</h3>
+            <p>
+              Fuente primaria. Es la que mejor cubre ediciones en español y la que devuelve
+              sinopsis y portada en mayor resolución. Requiere clave de API.
+            </p>
+            <div class="chain__meta">
+              <span>GET /books/v1/volumes?q=isbn:{ISBN}</span>
+              <span>clave requerida</span>
+              <span>timeout 6 s</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="chain__step">
+          <span class="chain__n">2</span>
+          <div class="chain__body">
+            <h3>Open Library</h3>
+            <p>
+              Respaldo abierto, sin clave ni cuota. Cubre bien el fondo antiguo y las obras
+              que Google no tiene indexadas, aunque con fichas más pobres. Es también la fuente
+              que usa hoy la búsqueda por título del prototipo.
+            </p>
+            <div class="chain__meta">
+              <span>GET /search.json?title={título}</span>
+              <span>sin clave</span>
+              <span>timeout 6 s</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="chain__step chain__step--spec">
+          <span class="chain__n">3</span>
+          <div class="chain__body">
+            <h3>Scraper de librerías</h3>
+            <p>
+              Si ninguna API reconoce el ISBN, se consultan los buscadores web de
+              <strong>Amazon</strong> y <strong>Gandhi</strong> analizando su HTML con Jsoup. Cubre el hueco
+              típico: ediciones locales y reimpresiones recientes que los catálogos globales
+              tardan meses en registrar.
+            </p>
+            <div class="chain__meta">
+              <span>Jsoup · Dispatchers.IO</span>
+              <span>timeout 8 s</span>
+              <span>solo por ISBN</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="chain__step chain__step--spec">
+          <span class="chain__n">4</span>
+          <div class="chain__body">
+            <h3>Alta manual</h3>
+            <p>
+              Si todo falla, el formulario se abre con lo poco que se haya podido recuperar y
+              el resto en blanco. Nunca se bloquea el alta de un libro por no encontrarlo.
+            </p>
+            <div class="chain__meta"><span>siempre disponible</span></div>
+          </div>
+        </li>
+      </ol>
+
+      <h3>Clave de API y cuota</h3>
+      <p>
+        La clave de Google Books se guarda en <code>local.properties</code>, se inyecta en tiempo de
+        compilación vía <code>BuildConfig</code> y queda fuera del control de versiones. Está restringida
+        por nombre de paquete y huella SHA-1, de modo que extraerla del APK no permite usarla en
+        otra aplicación. Open Library no requiere credencial.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fuente</th><th>Credencial</th><th>Límite</th><th>Devuelve</th></tr></thead>
+          <tbody>
+            <tr><td>Google Books</td><td>Clave de API restringida</td><td>1 000 consultas/día</td><td>Título, autor, año, páginas, ISBN, editorial, idioma, sinopsis, portada</td></tr>
+            <tr><td>Open Library</td><td>Ninguna</td><td>Uso razonable</td><td>Título, autor, año, páginas medianas, ISBN, idiomas, portada</td></tr>
+            <tr><td>Amazon · Gandhi</td><td>Ninguna</td><td>Autoimpuesto: 1 consulta/s</td><td>Título, autor, portada, editorial, precio de referencia</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Caché</h3>
+      <p>
+        Cada ficha resuelta se guarda en la base local indexada por ISBN, con validez de 30 días.
+        Escanear dos veces el mismo libro no genera tráfico, y las consultas repetidas durante una
+        misma sesión se sirven de memoria.
+      </p>
+    </section>
+
+    <!-- ══════════════════ SCRAPER ════════════════════════════ -->
+    <section id="scraper">
+      <div class="mod-head">
+        <h2>Scraper de respaldo</h2>
+        <span class="badge badge--spec">Especificado</span>
+      </div>
+      <p>
+        Implementado con <strong>Jsoup</strong>, una biblioteca de Java/Kotlin muy ligera para parsear
+        HTML. No hay navegador headless ni motor de JavaScript: se descarga el documento del
+        buscador de la tienda y se extraen los nodos con selectores CSS. Es la razón de que el
+        respaldo quepa en la aplicación sin engordarla.
+      </p>
+
+      <h3>Ejecución en hilo secundario</h3>
+      <p>
+        La consulta se lanza siempre desde un hilo de entrada/salida, nunca desde el principal.
+        En Android una petición de red en el hilo de interfaz provoca
+        <code>NetworkOnMainThreadException</code>, y aun sin eso el análisis del HTML bloquearía el
+        dibujado. Las dos tiendas se consultan en paralelo y gana la primera que responda con
+        una ficha válida.
+      </p>
+      <pre><code>suspend fun buscarPorIsbn(isbn: String): FichaLibro? = withContext(Dispatchers.IO) {
+    withTimeoutOrNull(8_000) {
+        listOf(
+            async { AmazonScraper.buscar(isbn) },
+            async { GandhiScraper.buscar(isbn) },
+        ).awaitFirstOrNull { it != null }
+    }
+}
+
+// Cada scraper descarga y parsea con Jsoup
+val doc = Jsoup.connect(url)
+    .userAgent(USER_AGENT)
+    .timeout(8_000)
+    .get()</code></pre>
+
+      <h3>Objetivos de extracción</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tienda</th><th>Consulta</th><th>Nodos que se leen</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Amazon</td>
+              <td><code>/s?k={ISBN}</code></td>
+              <td>Primer resultado de la lista: título, autor, imagen de portada y editorial de la ficha</td>
+            </tr>
+            <tr>
+              <td>Gandhi</td>
+              <td><code>/catalogsearch/result/?q={ISBN}</code></td>
+              <td>Primera tarjeta de producto: nombre, autor, imagen y precio de referencia</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Reglas de uso</h3>
+      <ul>
+        <li><strong>Solo por ISBN.</strong> Un ISBN identifica una edición concreta, así que el primer
+            resultado es fiable. Por título los buscadores devuelven ruido —otras ediciones,
+            accesorios, resúmenes— y esa vía no se usa.</li>
+        <li><strong>Solo como último recurso,</strong> después de que ambas APIs hayan fallado.</li>
+        <li><strong>Una consulta por segundo</strong> como máximo, y ninguna en segundo plano: siempre
+            responde a una acción explícita del usuario.</li>
+        <li><strong>Datos marcados como no verificados.</strong> Al llegar de un scraper, el formulario avisa
+            con más énfasis de que conviene revisar la ficha.</li>
+      </ul>
+
+      <div class="note note--flag">
+        <p style="margin:0 0 8px;"><strong>Fragilidad asumida.</strong></p>
+        <p style="margin:0;">
+          Un scraper depende del marcado de un sitio que puede cambiar sin avisar. Por eso vive
+          en el último escalón, sus selectores están aislados en una clase por tienda para poder
+          corregirlos sin tocar el resto, y cualquier fallo de análisis se trata como «no encontrado»
+          y pasa el turno al alta manual, jamás como un error visible para quien usa la aplicación.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════════════════ DATOS ══════════════════════════════ -->
+    <section id="datos">
+      <div class="mod-head">
+        <h2>Modelo de datos</h2>
+        <span class="badge badge--impl">Implementado</span>
+        <div class="mod-head__files"><span class="file">src/data.ts</span></div>
+      </div>
+
+      <h3>Libro</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr></thead>
+          <tbody>
+            <tr><td>id</td><td><code>string</code></td><td>Identificador del ejemplar</td></tr>
+            <tr><td>title · author</td><td><code>string</code></td><td>Título y autor principal</td></tr>
+            <tr><td>year · pages</td><td><code>number</code></td><td>Año de publicación y extensión</td></tr>
+            <tr><td>genre</td><td><code>string</code></td><td>Género, de los ocho del catálogo</td></tr>
+            <tr><td>isbn</td><td><code>string</code></td><td>Identificador de la edición</td></tr>
+            <tr><td>edition</td><td><code>Edition</code></td><td>Tapa blanda, tapa dura, bolsillo, eBook, audiolibro, CD o DVD</td></tr>
+            <tr><td>language</td><td><code>string</code></td><td>Idioma del ejemplar</td></tr>
+            <tr><td>shelfId</td><td><code>string</code></td><td>Librero donde está guardado</td></tr>
+            <tr><td>cover · color</td><td><code>string</code></td><td>Imagen de portada y color de lomo, usado en sombras e ilustraciones</td></tr>
+            <tr><td>rating</td><td><code>number</code></td><td>Calificación de 1 a 5</td></tr>
+            <tr><td>read</td><td><code>boolean</code></td><td>Terminado o no</td></tr>
+            <tr><td>synopsis</td><td><code>string</code></td><td>Resumen de la obra</td></tr>
+            <tr><td>review</td><td><code>string?</code></td><td>Reseña personal, opcional</td></tr>
+            <tr><td>quotes</td><td><code>Quote[]</code></td><td>Frases guardadas con su página</td></tr>
+            <tr><td>currentPage</td><td><code>number</code></td><td>Página por la que va la lectura</td></tr>
+            <tr><td>readingLog</td><td><code>ReadingEntry[]</code></td><td>Sesiones registradas</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Entidades auxiliares</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Campos</th></tr></thead>
+          <tbody>
+            <tr><td>Shelf</td><td><code>id · name · icon · color</code></td></tr>
+            <tr><td>Loan</td><td><code>id · bookId · borrower · lentDate · dueDate · returned · avatar</code></td></tr>
+            <tr><td>Quote</td><td><code>id · text · page?</code></td></tr>
+            <tr><td>ReadingEntry</td><td><code>id · date · fromPage · toPage</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Catálogos de opciones</h3>
+      <p>
+        <code>EDITIONS</code>, <code>LANGUAGES</code> y <code>GENRES</code> son la única fuente de verdad de los
+        desplegables del formulario de alta y de los filtros. Añadir un género se hace en un solo
+        sitio y aparece en toda la aplicación.
+      </p>
+    </section>
+
+    <!-- ══════════════════ ESTADO ═════════════════════════════ -->
+    <section id="estado">
+      <h2>Estado y persistencia</h2>
+      <p>
+        En el prototipo, <code>src/data.ts</code> es un módulo estático y cada pantalla mantiene su
+        propio estado en React. Eso basta para recorrer y validar los flujos, pero implica que
+        lo que se escribe en una sesión no sobrevive al cierre de la pantalla.
+      </p>
+      <h4>Acciones que hoy no persisten</h4>
+      <ul>
+        <li>Guardar un libro nuevo desde cualquiera de los tres métodos de alta.</li>
+        <li>Reseña personal y frases de un libro.</li>
+        <li>Avances de lectura y entradas del historial.</li>
+        <li>Preferencias de la pantalla de ajustes.</li>
+        <li>Marcar un préstamo como devuelto sí persiste, pero solo mientras la pantalla siga montada.</li>
+      </ul>
+      <h4>Siguiente paso</h4>
+      <p>
+        Subir la colección a estado compartido en <code>App.tsx</code> con una función de actualización que
+        se pase a las pantallas. Con ese único cambio, los cinco flujos anteriores empiezan a
+        persistir dentro de la sesión, y queda preparado el punto exacto donde el cliente de
+        producción enchufará el almacenamiento local y la sincronización.
+      </p>
+    </section>
+
+  </main>
+
+  <p class="foot">Bibliotheca · Manual de producto · Hecho con calma y cuidado 🌿</p>
+
+</div>
+
+</body>
+</html>

@@ -12,7 +12,8 @@ html, body, #root { height: 100%; }
 * { box-sizing: border-box; }
 
 body {
-  background: #1a2620;
+  /* Color inicial antes de montar; main.tsx lo sustituye por C.shell */
+  background: #17212c;
   font-family: var(--font-sans);
 }
 

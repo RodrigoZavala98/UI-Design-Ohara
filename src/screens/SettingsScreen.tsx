@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { C } from "../theme";
+import { books } from "../data";
+import YearInBooks from "./YearInBooks";
+import { ACCENTS, ACTIVE_ACCENT, C } from "../theme";
 
-type Section = "main" | "appearance" | "notifications" | "library" | "privacy" | "about";
+type Section = "main" | "year" | "appearance" | "notifications" | "library" | "privacy" | "about";
 
 type Settings = {
   theme: "light" | "sepia" | "dark";
@@ -24,29 +26,63 @@ type Settings = {
   backupEnabled: boolean;
   analyticsEnabled: boolean;
   icloudSync: boolean;
+  dateFormat: DateFormat;
+  language: Language;
 };
 
+type DateFormat = "dmy" | "ymd";
+type Language   = "es" | "en";
+
+const dateFormats: Record<DateFormat, { label: string; desc: string }> = {
+  dmy: { label: "DD-MM-AAAA", desc: "Día, mes y año" },
+  ymd: { label: "AAAA-MM-DD", desc: "Año, mes y día (ISO)" },
+};
+
+const languages: Record<Language, { label: string; native: string; flag: string }> = {
+  es: { label: "Español", native: "Idioma predeterminado", flag: "🇲🇽" },
+  en: { label: "Inglés",  native: "English",               flag: "🇬🇧" },
+};
+
+/* Ejemplo con la fecha de hoy para previsualizar el formato */
+function sampleDate(fmt: DateFormat) {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2, "0");
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const y = String(now.getFullYear());
+  return fmt === "dmy" ? `${d}-${m}-${y}` : `${y}-${m}-${d}`;
+}
+
 const defaults: Settings = {
-  theme: "light", accentColor: "sage", fontSize: "medium",
+  theme: "light", accentColor: ACTIVE_ACCENT, fontSize: "medium",
   compactCards: false, animationsEnabled: true,
   defaultView: "grid", sortBy: "title",
   showPageCount: true, showRatings: true, autoMarkRead: false,
   loanDurationDays: 30, reminderDaysBefore: 3, overdueAlerts: true,
   notificationsEnabled: true, loanReminders: true, weeklyDigest: false, newFeaturesAlert: true,
   backupEnabled: true, analyticsEnabled: false, icloudSync: true,
+  dateFormat: "dmy", language: "es",
 };
 
+/* El hex viene de theme.ts para que no se desincronice con la apariencia real */
 const accents = {
-  sage:     { label: "Salvia",  hex: "#4e7c5f", desc: "Equilibrio natural" },
-  mist:     { label: "Neblina", hex: "#5a7fa0", desc: "Serenidad marina" },
-  lavender: { label: "Lavanda", hex: "#7a6a9a", desc: "Calma introspectiva" },
-  warm:     { label: "Ámbar",   hex: "#8a6840", desc: "Calidez acogedora" },
+  sage:     { label: "Salvia",  hex: ACCENTS.sage.a,     desc: "Equilibrio natural" },
+  mist:     { label: "Neblina", hex: ACCENTS.mist.a,     desc: "Serenidad marina" },
+  lavender: { label: "Lavanda", hex: ACCENTS.lavender.a, desc: "Calma introspectiva" },
+  warm:     { label: "Ámbar",   hex: ACCENTS.warm.a,     desc: "Calidez acogedora" },
 };
 
 export default function SettingsScreen({ onClose }: { onClose: () => void }) {
   const [section, setSection] = useState<Section>("main");
   const [cfg, setCfg] = useState<Settings>(defaults);
   const set = <K extends keyof Settings>(k: K, v: Settings[K]) => setCfg((p) => ({ ...p, [k]: v }));
+
+  if (section === "year") {
+    return (
+      <Sub title="My year in books" onBack={() => setSection("main")} onClose={onClose}>
+        <YearInBooks />
+      </Sub>
+    );
+  }
 
   if (section !== "main") {
     return (
@@ -87,7 +123,9 @@ export default function SettingsScreen({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <p style={{ fontFamily: "var(--font-serif)", fontSize: "16px", fontWeight: 600, color: C.ink }}>Ana García</p>
-            <p style={{ fontFamily: "var(--font-sans)", fontSize: "12px", color: C.inkMuted }}>8 libros · 5 leídos</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: "12px", color: C.inkMuted }}>
+              {books.length} libros · {books.filter((b) => b.read).length} leídos
+            </p>
           </div>
           <button className="ml-auto" style={{ color: C.a }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -99,8 +137,34 @@ export default function SettingsScreen({ onClose }: { onClose: () => void }) {
 
       {/* Section list — 30 % ESTRUCTURA */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
+
+        {/* ── My year in books — destacado, 10 % ACENTO ── */}
+        <button
+          onClick={() => setSection("year")}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98 transition-all animate-fade-in"
+          style={{ background: C.aPale, outline: `1.5px solid ${C.a}45` }}
+        >
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xl"
+            style={{ background: C.dSoft }}>
+            ✨
+          </div>
+          <div className="flex-1">
+            <p style={{ fontFamily: "var(--font-serif)", fontSize: "15px", fontWeight: 700, color: C.a }}>
+              My year in books
+            </p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: "12px", color: C.inkMid, marginTop: "1px" }}>
+              Mi resumen anual de lectura
+            </p>
+          </div>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke={C.a} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        <div className="my-4" style={{ height: "1px", background: C.sDark, opacity: 0.55 }} />
+
         <div className="flex flex-col gap-2">
-          {(Object.keys(meta) as Exclude<Section, "main">[]).map((key, i) => {
+          {(Object.keys(meta) as SubSection[]).map((key, i) => {
             const m = meta[key];
             return (
               <button key={key} onClick={() => setSection(key)}
@@ -123,7 +187,7 @@ export default function SettingsScreen({ onClose }: { onClose: () => void }) {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "28px", fontFamily: "var(--font-lora)", fontSize: "12px", color: C.inkFaint, fontStyle: "italic" }}>
-          Bibliotheca v1.0.0
+          Ohara v1.0.0 | Por: José Rodrigo López
         </p>
       </div>
     </div>
@@ -162,7 +226,7 @@ function Appearance({ cfg, set }: { cfg: Settings; set: SetFn }) {
         <div className="grid grid-cols-3 gap-2 p-3">
           {(["light","sepia","dark"] as const).map((t) => {
             const labels = { light:"Claro", sepia:"Sépia", dark:"Oscuro" };
-            const bgs    = { light: C.d, sepia:"#ede0c8", dark:"#2a3830" };
+            const bgs    = { light: C.d, sepia:"#ede0c8", dark: C.shell };
             const on = cfg.theme === t;
             return (
               <button key={t} onClick={() => set("theme", t)}
@@ -222,6 +286,75 @@ function Appearance({ cfg, set }: { cfg: Settings; set: SetFn }) {
                 style={{ background: on ? C.aPale : C.dDeep, outline: on ? `2px solid ${C.a}` : "none" }}>
                 <span style={{ fontFamily:"var(--font-serif)", fontSize: sizes[sz], fontWeight:600, color: on ? C.a : C.inkMid }}>Aa</span>
                 <span style={{ fontFamily:"var(--font-sans)", fontSize:"10px", color: on ? C.a : C.inkMuted }}>{labels[sz]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Group>
+
+      <Group title="Formato de fecha">
+        <div className="flex flex-col gap-1 p-3">
+          {(Object.keys(dateFormats) as DateFormat[]).map((fmt) => {
+            const on = cfg.dateFormat === fmt;
+            const f  = dateFormats[fmt];
+            return (
+              <button key={fmt} onClick={() => set("dateFormat", fmt)}
+                className="flex items-center gap-3 p-3 rounded-xl transition-all"
+                style={{ background: on ? C.aPale : "transparent", outline: on ? `1.5px solid ${C.a}50` : "none" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: on ? `${C.a}18` : C.dDeep }}>
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                    <rect x="2.5" y="4" width="15" height="13.5" rx="2.5" stroke={on ? C.a : C.inkMid} strokeWidth="1.5"/>
+                    <path d="M2.5 8h15M6.5 2.5v3M13.5 2.5v3" stroke={on ? C.a : C.inkMid} strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="flex-1 text-left">
+                  <p style={{ fontFamily:"DM Mono, monospace", fontSize:"13.5px", fontWeight:600, color: on ? C.a : C.ink }}>
+                    {f.label}
+                  </p>
+                  <p style={{ fontFamily:"var(--font-sans)", fontSize:"11px", color:C.inkMuted }}>
+                    {f.desc} · hoy sería {sampleDate(fmt)}
+                  </p>
+                </div>
+                {on && (
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: C.a }}>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2.5 5l2 2 3-3" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </Group>
+
+      <Group title="Idioma">
+        <div className="flex flex-col gap-1 p-3">
+          {(Object.keys(languages) as Language[]).map((lang) => {
+            const on = cfg.language === lang;
+            const l  = languages[lang];
+            return (
+              <button key={lang} onClick={() => set("language", lang)}
+                className="flex items-center gap-3 p-3 rounded-xl transition-all"
+                style={{ background: on ? C.aPale : "transparent", outline: on ? `1.5px solid ${C.a}50` : "none" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: on ? `${C.a}18` : C.dDeep, fontSize: "17px" }}>
+                  {l.flag}
+                </div>
+                <div className="flex-1 text-left">
+                  <p style={{ fontFamily:"var(--font-sans)", fontSize:"13px", fontWeight:600, color: on ? C.a : C.ink }}>
+                    {l.label}
+                  </p>
+                  <p style={{ fontFamily:"var(--font-sans)", fontSize:"11px", color:C.inkMuted }}>{l.native}</p>
+                </div>
+                {on && (
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: C.a }}>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2.5 5l2 2 3-3" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
               </button>
             );
           })}
@@ -351,7 +484,7 @@ function About() {
           <span style={{ fontSize: "36px" }}>📚</span>
         </div>
         <div className="text-center">
-          <p style={{ fontFamily:"var(--font-serif)", fontSize:"22px", fontWeight:700, color:C.ink }}>Bibliotheca</p>
+          <p style={{ fontFamily:"var(--font-serif)", fontSize:"22px", fontWeight:700, color:C.ink }}>Ohara</p>
           <p style={{ fontFamily:"var(--font-sans)", fontSize:"13px", color:C.inkMuted, marginTop:"2px" }}>Versión 1.0.0 (42)</p>
         </div>
       </div>
@@ -458,8 +591,11 @@ function Action({ label, desc, icon, danger }: { label: string; desc: string; ic
   );
 }
 
+/* Secciones que se listan en el menú (year se muestra aparte, destacada) */
+type SubSection = Exclude<Section, "main" | "year">;
+
 /* Section metadata */
-const meta: Record<Exclude<Section,"main">, { title:string; sub:string; icon:string }> = {
+const meta: Record<SubSection, { title:string; sub:string; icon:string }> = {
   appearance:    { title:"Apariencia",     sub:"Tema, colores y tipografía",         icon:"🎨" },
   library:       { title:"Librería",       sub:"Vistas, orden y préstamos",          icon:"📚" },
   notifications: { title:"Notificaciones", sub:"Alertas y recordatorios",            icon:"🔔" },

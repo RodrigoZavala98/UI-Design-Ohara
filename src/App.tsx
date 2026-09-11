@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { type ReactNode } from "react";
 import OverviewScreen from "./screens/OverviewScreen";
 import ShelvesScreen from "./screens/ShelvesScreen";
@@ -9,19 +9,61 @@ import { C } from "./theme";
 
 type Tab = "overview" | "shelves" | "loans";
 
+/* Dimensiones lógicas del dispositivo (iPhone 14) */
+const PHONE_W = 390;
+const PHONE_H = 844;
+/* Aire mínimo alrededor del mockup */
+const MARGIN = 32;
+
+/* Escala el mockup para que quepa completo en el viewport disponible */
+function usePhoneScale() {
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      setScale(
+        Math.min(
+          1,
+          (h - MARGIN) / PHONE_H,
+          (w - MARGIN) / PHONE_W,
+        ),
+      );
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    window.addEventListener("orientationchange", compute);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("orientationchange", compute);
+    };
+  }, []);
+
+  return scale;
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [showAddBook, setShowAddBook] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const scale = usePhoneScale();
 
   return (
     /* Shell exterior — color bosque oscuro */
-    <div className="size-full flex items-center justify-center" style={{ background: C.shell }}>
+    <div className="size-full flex items-center justify-center overflow-hidden" style={{ background: C.shell }}>
+      {/* Contenedor con la huella ya escalada, para que el centrado sea exacto */}
+      <div
+        className="relative shrink-0"
+        style={{ width: PHONE_W * scale, height: PHONE_H * scale }}
+      >
       <div
         className="relative flex flex-col overflow-hidden"
         style={{
-          width: "390px",
-          height: "844px",
+          width: `${PHONE_W}px`,
+          height: `${PHONE_H}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
           background: C.d,           /* 60 % DOMINANTE */
           borderRadius: "44px",
           boxShadow: "0 40px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
@@ -61,11 +103,18 @@ export default function App() {
         </div>
 
         {/* ── Bottom nav — 30 % ESTRUCTURA ───────────────────── */}
+        {/*
+          position + zIndex son necesarios: el contenido de las pantallas usa
+          animaciones con transform, que crean contexto de apilamiento y
+          taparían la parte del FAB que sobresale por encima de la nav.
+        */}
         <div
           className="shrink-0 flex items-end justify-around pb-8 pt-3 px-2"
           style={{
             background: C.s,          /* 30 % */
             borderTop: `1px solid ${C.sDark}`,
+            position: "relative",
+            zIndex: 20,
           }}
         >
           <NavTab label="Colección" active={activeTab === "overview"} onClick={() => setActiveTab("overview")}
@@ -104,6 +153,7 @@ export default function App() {
         {/* ── Overlays ───────────────────────────────────────── */}
         {showAddBook  && <AddBookModal  onClose={() => setShowAddBook(false)} />}
         {showSettings && <SettingsScreen onClose={() => setShowSettings(false)} />}
+      </div>
       </div>
     </div>
   );

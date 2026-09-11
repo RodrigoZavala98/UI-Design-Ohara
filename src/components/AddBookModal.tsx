@@ -1,13 +1,46 @@
 import { useState } from "react";
-import { shelves } from "../data";
+import { EDITIONS, GENRES, LANGUAGES, shelves } from "../data";
+import BookSearch, { type SearchResult } from "./BookSearch";
 import { C } from "../theme";
 
-type Step = "method" | "scan" | "form";
+type Step = "method" | "scan" | "search" | "form";
+
+const emptyForm = {
+  title: "", author: "", year: "", pages: "", isbn: "",
+  genre: "Literatura",
+  language: "Español",
+  edition: "Tapa blanda" as string,
+  shelfId: "s1",
+};
 
 export default function AddBookModal({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<Step>("method");
-  const [form, setForm] = useState({ title: "", author: "", year: "", pages: "", isbn: "", shelfId: "s1" });
+  const [form, setForm] = useState(emptyForm);
+  const [cover, setCover] = useState<string | null>(null);
+  const [fromCatalog, setFromCatalog] = useState(false);
+  const [query, setQuery] = useState("");
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  /* Un resultado del catálogo precarga el formulario para revisarlo antes de guardar */
+  const pickResult = (r: SearchResult) => {
+    setForm((p) => ({
+      ...p,
+      title:    r.title,
+      author:   r.author,
+      year:     r.year  ? String(r.year)  : "",
+      pages:    r.pages ? String(r.pages) : "",
+      isbn:     r.isbn ?? "",
+      language: r.language ?? p.language,
+    }));
+    setCover(r.coverUrl ?? null);
+    setFromCatalog(true);
+    setStep("form");
+  };
+
+  const openManual = () => {
+    setFromCatalog(false);
+    setStep("form");
+  };
 
   return (
     /* 60 % DOMINANTE de fondo */
@@ -57,8 +90,27 @@ export default function AddBookModal({ onClose }: { onClose: () => void }) {
               </div>
             </button>
 
+            {/* Buscar por título — 30 % con icono de acento */}
+            <button onClick={() => setStep("search")}
+              className="w-full flex items-center gap-4 p-5 rounded-3xl mb-3 text-left active:scale-98 transition-all"
+              style={{ background: C.s }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `${C.a}28` }}>
+                <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                  <circle cx="11.5" cy="11.5" r="7.5" stroke={C.a} strokeWidth="1.8"/>
+                  <path d="M17 17l5 5" stroke={C.a} strokeWidth="1.8" strokeLinecap="round"/>
+                  <path d="M8.5 10.5h6M8.5 13.5h4" stroke={C.a} strokeWidth="1.5" strokeLinecap="round" opacity="0.65"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontFamily: "var(--font-serif)", fontSize: "17px", fontWeight: 600, color: C.ink }}>Buscar por título</p>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: "12px", color: C.inkMuted, marginTop: "2px" }}>
+                  Escribe el nombre y lo encontramos por ti
+                </p>
+              </div>
+            </button>
+
             {/* Manual — 30 % */}
-            <button onClick={() => setStep("form")}
+            <button onClick={openManual}
               className="w-full flex items-center gap-4 p-5 rounded-3xl text-left active:scale-98 transition-all"
               style={{ background: C.s }}>
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ background: C.dDeep }}>
@@ -119,14 +171,35 @@ export default function AddBookModal({ onClose }: { onClose: () => void }) {
                 </p>
               </div>
             </div>
-            <Btn onClick={() => setStep("form")}>Rellenar manualmente</Btn>
+            <Btn onClick={openManual}>Rellenar manualmente</Btn>
+          </div>
+        )}
+
+        {/* ── Búsqueda por título ── */}
+        {step === "search" && (
+          <div className="px-6 pt-2 pb-6 animate-fade-in">
+            <BackBtn onClick={() => setStep("method")} />
+            <BookSearch query={query} onQueryChange={setQuery} onPick={pickResult} onManual={openManual} />
           </div>
         )}
 
         {/* ── Formulario ── */}
         {step === "form" && (
           <div className="px-6 pt-2 pb-6 animate-fade-in">
-            <BackBtn onClick={() => setStep("method")} />
+            <BackBtn onClick={() => setStep(fromCatalog ? "search" : "method")} />
+
+            {fromCatalog && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-2xl mb-4" style={{ background: C.aPale }}>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="shrink-0 mt-0.5">
+                  <circle cx="10" cy="10" r="7.5" stroke={C.a} strokeWidth="1.6"/>
+                  <path d="M10 6.2v.1M10 9v4.6" stroke={C.a} strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: "12px", color: C.inkMid, lineHeight: 1.5 }}>
+                  Datos traídos del catálogo. Revísalos y corrige lo que haga falta antes de guardar.
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-col gap-3">
               <Field label="Título"  value={form.title}  onChange={(v) => set("title", v)}  placeholder="El nombre de la rosa" />
               <Field label="Autor"   value={form.author} onChange={(v) => set("author", v)} placeholder="Umberto Eco" />
@@ -136,35 +209,48 @@ export default function AddBookModal({ onClose }: { onClose: () => void }) {
               </div>
               <Field label="ISBN" value={form.isbn} onChange={(v) => set("isbn", v)} placeholder="978-0-15-144647-6" />
 
-              {/* Selector de librero */}
-              <div>
-                <Label>Librero</Label>
-                <div className="flex flex-wrap gap-2">
-                  {shelves.map((s) => (
-                    <button key={s.id} onClick={() => set("shelfId", s.id)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all"
-                      style={{
-                        background: form.shelfId === s.id ? C.a : C.s,
-                        color:      form.shelfId === s.id ? "white" : C.inkMid,
-                        fontFamily: "var(--font-sans)",
-                      }}>
-                      {s.icon} {s.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <Select label="Género"          options={GENRES}    value={form.genre}    onChange={(v) => set("genre", v)} />
+              <Select label="Idioma"          options={LANGUAGES} value={form.language} onChange={(v) => set("language", v)} />
+              <Select label="Tipo de edición" options={EDITIONS}  value={form.edition}  onChange={(v) => set("edition", v)} />
+
+              <Chips
+                label="Librero"
+                options={shelves.map((s) => ({ value: s.id, label: `${s.icon} ${s.name}` }))}
+                value={form.shelfId}
+                onChange={(v) => set("shelfId", v)}
+              />
 
               {/* Portada */}
               <div>
                 <Label>Portada</Label>
-                <div className="flex items-center justify-center rounded-2xl border-2 border-dashed gap-2 py-5"
-                  style={{ borderColor: `${C.a}35` }}>
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path d="M10 4v8M7 7l3-3 3 3" stroke={C.a} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M4 14v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke={C.a} strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                  <span style={{ fontFamily: "var(--font-sans)", fontSize: "13px", color: C.a }}>Subir imagen</span>
-                </div>
+                {cover ? (
+                  <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: C.s }}>
+                    <img src={cover} alt="Portada encontrada" className="rounded-xl object-cover shrink-0"
+                      style={{ width: "48px", height: "70px", background: C.dDeep }}
+                      onError={() => setCover(null)} />
+                    <div className="flex-1">
+                      <p style={{ fontFamily: "var(--font-sans)", fontSize: "12.5px", fontWeight: 600, color: C.ink }}>
+                        Portada del catálogo
+                      </p>
+                      <p style={{ fontFamily: "var(--font-sans)", fontSize: "11px", color: C.inkMuted, marginTop: "1px" }}>
+                        Se guardará con el libro
+                      </p>
+                    </div>
+                    <button onClick={() => setCover(null)}
+                      style={{ fontFamily: "var(--font-sans)", fontSize: "12px", fontWeight: 600, color: C.a }}>
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center rounded-2xl border-2 border-dashed gap-2 py-5"
+                    style={{ borderColor: `${C.a}35` }}>
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                      <path d="M10 4v8M7 7l3-3 3 3" stroke={C.a} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M4 14v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke={C.a} strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    <span style={{ fontFamily: "var(--font-sans)", fontSize: "13px", color: C.a }}>Subir imagen</span>
+                  </div>
+                )}
               </div>
 
               <Btn onClick={onClose}>Guardar libro</Btn>
@@ -188,6 +274,76 @@ function Field({ label, value, onChange, placeholder, type = "text" }: {
         style={{ background: C.s, fontFamily: "var(--font-sans)", fontSize: "14px", color: C.ink, border: "2px solid transparent" }}
         onFocus={(e) => { e.currentTarget.style.borderColor = C.a; }}
         onBlur={(e)  => { e.currentTarget.style.borderColor = "transparent"; }} />
+    </div>
+  );
+}
+
+/* Lista desplegable — usa el selector nativo, más cómodo en móvil */
+function Select({ label, options, value, onChange }: {
+  label: string;
+  options: readonly string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full pl-4 pr-10 py-3 rounded-xl outline-none appearance-none transition-all"
+          style={{
+            background: C.s,
+            fontFamily: "var(--font-sans)",
+            fontSize: "14px",
+            color: C.ink,
+            border: "2px solid transparent",
+          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = C.a; }}
+          onBlur={(e)  => { e.currentTarget.style.borderColor = "transparent"; }}
+        >
+          {options.map((o) => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </select>
+        {/* Flecha propia: el selector nativo oculta la suya con appearance-none */}
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
+          className="absolute pointer-events-none"
+          style={{ right: "14px", top: "50%", transform: "translateY(-50%)" }}>
+          <path d="M4 6l4 4 4-4" stroke={C.a} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* Selector de una sola opción — chips que envuelven, todas visibles */
+function Chips({ label, options, value, onChange }: {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => {
+          const on = value === o.value;
+          return (
+            <button key={o.value} onClick={() => onChange(o.value)}
+              className="px-3 py-2 rounded-xl text-xs font-medium transition-all active:scale-95"
+              style={{
+                background: on ? C.a : C.s,
+                color:      on ? "white" : C.inkMid,
+                fontFamily: "var(--font-sans)",
+              }}>
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
